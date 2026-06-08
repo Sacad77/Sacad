@@ -6,19 +6,13 @@
     <title>CA252 Class Behavior Management System</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2563eb; --primary-dark: #1d4ed8; --success: #10b981; --danger: #ef4444; --background: #f4f6fa; --text-main: #0f172a; --text-muted: #64748b; --gradient: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 100%); --card-shadow: 0 20px 40px -15px rgba(30, 58, 138, 0.15); }
+        :root { --primary: #2563eb; --primary-dark: #1d4ed8; --background: #f4f6fa; --text-main: #0f172a; --gradient: linear-gradient(135deg, #1e3a8a 0%, #4f46e5 100%); }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--background); color: var(--text-main); padding-bottom: 40px; }
-        header { background: var(--gradient); color: white; padding: 70px 20px; text-align: center; border-radius: 0 0 50px 50px; }
-        .container { width: 92%; max-width: 1100px; margin: -40px auto 0 auto; padding: 35px; background: rgba(255, 255, 255, 0.98); border-radius: 30px; box-shadow: var(--card-shadow); }
-        .tabs { display: flex; background: #e2e8f0; padding: 6px; border-radius: 20px; gap: 6px; margin-bottom: 35px; }
-        .tab-btn { flex: 1; padding: 16px; border: none; background: transparent; cursor: pointer; font-weight: 700; color: #475569; border-radius: 14px; transition: 0.3s; }
-        .tab-btn.active { background: white; color: var(--primary-dark); }
-        .panel { display: none; } .panel.active { display: block; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--background); padding-bottom: 40px; }
+        header { background: var(--gradient); color: white; padding: 50px 20px; text-align: center; border-radius: 0 0 50px 50px; }
+        .container { width: 92%; max-width: 1100px; margin: -30px auto 0 auto; padding: 30px; background: white; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         input { width: 100%; padding: 16px; border: 2px solid #cbd5e1; border-radius: 16px; margin-bottom: 20px; }
-        .student-card { background: white; padding: 30px; border-radius: 24px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); margin-top: 25px; }
-        .btn-login { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 16px; width: 100%; font-weight: 700; cursor: pointer; }
-        footer { text-align: center; margin-top: 60px; font-weight: 700; color: var(--text-muted); }
+        .student-card { background: #f8fafc; padding: 25px; border-radius: 20px; border-left: 5px solid var(--primary); }
     </style>
 </head>
 <body>
@@ -26,30 +20,10 @@
 <header><h1>CA252 Class Behavior Management System</h1></header>
 
 <div class="container">
-    <div class="tabs">
-        <button class="tab-btn active" id="btn-student-tab" onclick="switchTab('student-panel')">Bogga Ardayga</button>
-        <button class="tab-btn" id="btn-admin-tab" onclick="switchTab('admin-login-panel')">Bogga Guddiga</button>
-    </div>
-
-    <div id="student-panel" class="panel active">
-        <h2>Ugu Kaalay Xaaladda Dhaqankaaga</h2>
-        <input type="text" id="search-input" onkeyup="liveCheckStudentStatus()" placeholder="Geli ID ama Magacaaga...">
-        <div id="student-result" style="display: none;"></div>
-    </div>
-
-    <div id="admin-login-panel" class="panel">
-        <input type="text" id="login-admin-name" placeholder="Magacaaga...">
-        <input type="password" id="login-admin-pass" placeholder="Password...">
-        <button class="btn-login" onclick="processAdminLogin()">Login</button>
-    </div>
-
-    <div id="admin-panel" class="panel">
-        <h2>Maamulka Guddiga</h2>
-        <div id="admin-table-body"></div>
-    </div>
+    <h2>Raadi Ardayga</h2>
+    <input type="text" id="search-input" onkeyup="checkStatus()" placeholder="Geli ID ama Magaca Ardayga...">
+    <div id="result"></div>
 </div>
-
-<footer>Designed & developed by <span>Sacad Siciid Caraaye</span></footer>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -57,10 +31,9 @@
 <script>
     const firebaseConfig = { databaseURL: "https://ca252-system-ff4a8-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
     
-    // Liiska dhammaystiran ee 75-ta arday (Basil waxaa lagu daray dhamaadka)
-    const officialStudentsList = [
+    // Liiska Rasmiga ah (75-ta Arday)
+    const officialList = [
         { id: "C1250082", name: "Hamza Mohamednur yare Ali" }, { id: "C1250083", name: "Hassan Nor Adan" },
         { id: "C1250084", name: "Mohamed Hashim Mohamed" }, { id: "C1250085", name: "Anab Abdullahi Hussein" },
         { id: "C1250086", name: "Sacdia Nur Mohamed" }, { id: "C1250087", name: "Garad Hussein Nur" },
@@ -87,38 +60,35 @@
         { id: "C1250143", name: "Hassan Abdikhadir Hassan" }, { id: "C1250144", name: "Sayid Ali Isse Hirsi" },
         { id: "C1250145", name: "Salma Farah Madar" }, { id: "C1250147", name: "Amino Mahad Ahmed" },
         { id: "C1250148", name: "Ali Yusuf Ali" }, { id: "C1250151", name: "Abdullahi Ahmed Yusuf" },
-        { id: "C1250153", name: "Ruwieda Hassan Adan" }, { id: "C1250156", name: "Khadijo Mohamed Dahir" },
-        { id: "C1250157", name: "Sahro Ahmed Warsame" }, { id: "C1250160", name: "Mascud Hassan Abdulqadir" },
-        { id: "C1250256", name: "Hayat Abdullahi Ali" }, { id: "C1250258", name: "Jabir Abdullahi Hassan" },
-        { id: "C1250260", name: "Abdirahman Abdullahi Mohamed" }, { id: "C1250264", name: "Abdirashid Mohamed Osman" },
-        { id: "C1250267", name: "Abdirizak Omar Mohamud" }, { id: "C1250270", name: "Shukri Abdullahi Jama" },
-        { id: "C1250271", name: "Zakarie Duran Mohamed" }, { id: "C1250273", name: "Ali Abdi Mohamud" },
-        { id: "C1250274", name: "Ismail Said Muse" }, { id: "C1250284", name: "Mohamed Abukar Mohamed" },
-        { id: "C1250289", name: "Abdullahi Mohamed Abdullahi" }, { id: "C1250323", name: "Ahmed Abdikarim Osman" },
-        { id: "C1250528", name: "Sabirin Abdirizak Mohamed" }, { id: "C1250529", name: "Ruweyda Ahmed Mohamed" },
-        { id: "C1250531", name: "Abdullahi Mohamed Ahmed" }, { id: "C1250533", name: "Miski Hassan Mohamed" },
-        { id: "C1250535", name: "Muhsin Abdulkadir Yusuf" }, { id: "C1250152", name: "Basil Abdullahi Abukar" }
+        { id: "C1250152", name: "Basil Abdullahi Abukar" }, { id: "C1250153", name: "Ruwieda Hassan Adan" },
+        { id: "C1250156", name: "Khadijo Mohamed Dahir" }, { id: "C1250157", name: "Sahro Ahmed Warsame" },
+        { id: "C1250160", name: "Mascud Hassan Abdulqadir" }, { id: "C1250256", name: "Hayat Abdullahi Ali" },
+        { id: "C1250258", name: "Jabir Abdullahi Hassan" }, { id: "C1250260", name: "Abdirahman Abdullahi Mohamed" },
+        { id: "C1250264", name: "Abdirashid Mohamed Osman" }, { id: "C1250267", name: "Abdirizak Omar Mohamud" },
+        { id: "C1250270", name: "Shukri Abdullahi Jama" }, { id: "C1250271", name: "Zakarie Duran Mohamed" },
+        { id: "C1250273", name: "Ali Abdi Mohamud" }, { id: "C1250274", name: "Ismail Said Muse" },
+        { id: "C1250284", name: "Mohamed Abukar Mohamed" }, { id: "C1250289", name: "Abdullahi Mohamed Abdullahi" },
+        { id: "C1250323", name: "Ahmed Abdikarim Osman" }, { id: "C1250528", name: "Sabirin Abdirizak Mohamed" },
+        { id: "C1250529", name: "Ruweyda Ahmed Mohamed" }, { id: "C1250531", name: "Abdullahi Mohamed Ahmed" },
+        { id: "C1250533", name: "Miski Hassan Mohamed" }, { id: "C1250535", name: "Muhsin Abdulkadir Yusuf" }
     ];
 
-    let students = [];
-    db.ref('students_behavior').on('value', (snap) => { students = snap.val() || []; });
+    let dbData = {};
+    firebase.database().ref('students_behavior').on('value', (s) => { dbData = s.val() || {}; });
 
-    function liveCheckStudentStatus() {
-        const query = document.getElementById('search-input').value.trim().toLowerCase();
-        const resultDiv = document.getElementById('student-result');
-        const student = students.find(s => s.id.toLowerCase() === query || (query.length >= 3 && s.name.toLowerCase().includes(query)));
-        if (student) {
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `<div class="student-card"><h3>Xogtaada</h3><p>Magaca: ${student.name}</p><p>Dhibcaha: ${student.conduct}%</p></div>`;
-        } else { resultDiv.style.display = 'none'; }
+    function checkStatus() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const resultDiv = document.getElementById('result');
+        if (query.length < 3) { resultDiv.innerHTML = ""; return; }
+
+        const found = officialList.find(s => s.id.toLowerCase() === query || s.name.toLowerCase().includes(query));
+        if (found) {
+            const score = dbData[found.id]?.conduct || 0;
+            resultDiv.innerHTML = `<div class="student-card"><h3>${found.name}</h3><p>ID: ${found.id}</p><p>Dhibcaha: <strong>${score}%</strong></p></div>`;
+        } else {
+            resultDiv.innerHTML = "<p>Ardayga lama helin.</p>";
+        }
     }
-
-    function switchTab(id) {
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function processAdminLogin() { alert("Login-kaaga wuu shaqaynayaa!"); }
 </script>
 </body>
 </html>
